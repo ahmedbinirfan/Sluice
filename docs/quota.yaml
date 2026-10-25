@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: team-cases
+  namespace: team-cases
+spec:
+  hard:
+    limits.cpu: "2"
+    limits.memory: 2Gi
+    pods: "5"
