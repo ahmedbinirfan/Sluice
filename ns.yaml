@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-policy
+  labels:
+    tenant: policy
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-cases
+  labels:
+    tenant: cases
