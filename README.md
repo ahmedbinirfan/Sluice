@@ -22,3 +22,4 @@ Phase 0: repo scaffold, local toolchain, and commit hooks.
 
 - [Local setup](docs/setup.md)
 - [Architecture decision records](docs/adr/0001-record-architecture-decisions.md)
+- [Azure region and naming](docs/adr/0002-azure-naming-and-region.md)
