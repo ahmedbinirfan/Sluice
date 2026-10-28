@@ -1,0 +1,161 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Lint
+        run: make lint
+
+      - name: Test
+        run: make test
+
+  terraform:
+    runs-on: ubuntu-latest
+    env:
+      TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/.terraform.d/plugin-cache
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+
+      - name: Cache Terraform providers
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.TF_PLUGIN_CACHE_DIR }}
+          key: terraform-${{ runner.os }}-${{ hashFiles('infra/terraform/.terraform.lock.hcl') }}
+          restore-keys: |
+            terraform-${{ runner.os }}-
+
+      - name: Create plugin cache dir
+        run: mkdir -p "$TF_PLUGIN_CACHE_DIR"
+
+      - name: Format check
+        run: terraform fmt -check -recursive
+
+      - name: Init (no backend) and validate
+        run: |
+          terraform -chdir=infra/terraform init -backend=false -input=false
+          terraform -chdir=infra/terraform validate
+
+  helm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v5
+
+      - name: Lint charts
+        run: |
+          shopt -s nullglob
+          charts=(deploy/helm/*/Chart.yaml)
+          if [ ${#charts[@]} -eq 0 ]; then
+            echo "No Helm charts under deploy/helm/; skipping."
+            exit 0
+          fi
+          for chart in "${charts[@]}"; do
+            helm lint "$(dirname "$chart")"
+          done
+
+  plan:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+    env:
+      TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/.terraform.d/plugin-cache
+      ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_wrapper: false
+
+      - name: Cache Terraform providers
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.TF_PLUGIN_CACHE_DIR }}
+          key: terraform-${{ runner.os }}-${{ hashFiles('infra/terraform/.terraform.lock.hcl') }}
+          restore-keys: |
+            terraform-${{ runner.os }}-
+
+      - name: Create plugin cache dir
+        run: mkdir -p "$TF_PLUGIN_CACHE_DIR"
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Terraform init and plan
+        id: tf
+        working-directory: infra/terraform
+        run: |
+          set -o pipefail
+          terraform init -input=false
+          terraform plan -no-color -input=false -out=tfplan 2>&1 | tee plan.txt
+          {
+            echo '### Terraform plan'
+            echo
+            echo '```'
+            # Keep the summary under GitHub's comment size limit.
+            head -c 60000 plan.txt
+            echo
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Post plan comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          marker='<!-- sluice-terraform-plan -->'
+          {
+            echo "$marker"
+            echo '### Terraform plan'
+            echo '```'
+            head -c 60000 infra/terraform/plan.txt
+            echo
+            echo '```'
+          } > /tmp/plan-comment.md
+
+          existing=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
+            --jq ".[] | select(.body | contains(\"$marker\")) | .id" | head -n1)
+
+          if [ -n "$existing" ]; then
+            gh api --method PATCH "repos/${{ github.repository }}/issues/comments/$existing" \
+              -F body=@/tmp/plan-comment.md
+          else
+            gh api --method POST "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
+              -F body=@/tmp/plan-comment.md
+          fi
