@@ -16,7 +16,7 @@ Coming in Phase 1. The target exists and prints `TODO` until the local cluster i
 
 ## Status
 
-Phase 0: repo scaffold, local toolchain, and commit hooks.
+Phase 0: repo scaffold, local toolchain, commit hooks, Azure foundations, and CI on every PR.
 
 ## Docs
 
