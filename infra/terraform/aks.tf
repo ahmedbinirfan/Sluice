@@ -9,8 +9,7 @@ resource "azurerm_kubernetes_cluster" "dev" {
   workload_identity_enabled = true
 
   default_node_pool {
-    name = "system"
-    # ponytail: DSv5 quota 0 in aue; D4s_v4 not on AKS allowlist. D4s_v6 has Dsv6 quota (10).
+    name           = "system"
     vm_size        = "Standard_D4s_v6"
     node_count     = 1
     vnet_subnet_id = azurerm_subnet.aks.id
