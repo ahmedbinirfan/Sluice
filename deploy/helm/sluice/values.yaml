@@ -1,0 +1,15 @@
+# Enable components in later stories once each chart is real.
+vllm:
+  enabled: false
+
+tei:
+  enabled: false
+
+litellm:
+  enabled: false
+
+langfuse:
+  enabled: false
+
+kube-prometheus-stack:
+  enabled: false

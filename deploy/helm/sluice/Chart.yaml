@@ -1,0 +1,28 @@
+apiVersion: v2
+name: sluice
+description: Umbrella chart for the Sluice serving stack (components start disabled).
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+dependencies:
+  - name: vllm
+    version: 0.1.0
+    repository: file://charts/vllm
+    condition: vllm.enabled
+  - name: tei
+    version: 0.1.0
+    repository: file://charts/tei
+    condition: tei.enabled
+  - name: litellm
+    version: 0.1.0
+    repository: file://charts/litellm
+    condition: litellm.enabled
+  - name: langfuse
+    version: 0.1.0
+    repository: file://charts/langfuse
+    condition: langfuse.enabled
+  - name: kube-prometheus-stack
+    version: 0.1.0
+    repository: file://charts/kube-prometheus-stack
+    condition: kube-prometheus-stack.enabled
+    alias: kube-prometheus-stack
