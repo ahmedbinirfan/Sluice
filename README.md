@@ -9,14 +9,15 @@ Diagram placeholder. The picture of tenants, the gateway, vLLM, and the eval gat
 ## Quickstart
 
 ```bash
-make up
+make up    # terraform apply + kubeconfig + Argo CD + root app-of-apps
+make down  # terraform destroy — run at end of every paid session
 ```
 
-Coming in Phase 1. The target exists and prints `TODO` until the local cluster is built.
+Requires Azure CLI login, Terraform, Helm, and kubectl. Argo syncs `deploy/argocd/` from `main`.
 
 ## Status
 
-Phase 0: repo scaffold, local toolchain, commit hooks, Azure foundations, and CI on every PR.
+Phase 0 done. Phase 1 (SLU-5): AKS + spot GPU pool + NVIDIA device plugin + Argo CD app-of-apps + umbrella Helm skeleton.
 
 ## Docs
 

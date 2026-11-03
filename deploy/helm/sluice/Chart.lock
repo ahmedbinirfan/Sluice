@@ -1,0 +1,18 @@
+dependencies:
+- name: vllm
+  repository: file://charts/vllm
+  version: 0.1.0
+- name: tei
+  repository: file://charts/tei
+  version: 0.1.0
+- name: litellm
+  repository: file://charts/litellm
+  version: 0.1.0
+- name: langfuse
+  repository: file://charts/langfuse
+  version: 0.1.0
+- name: kube-prometheus-stack
+  repository: file://charts/kube-prometheus-stack
+  version: 0.1.0
+digest: sha256:2c1dcce45c670abb6e0ada62177a09bdce934b7c7321de0538d1466f5a110a65
+generated: "2026-11-03T12:44:05.064013+11:00"

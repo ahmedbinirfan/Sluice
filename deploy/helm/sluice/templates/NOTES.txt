@@ -1,0 +1,8 @@
+Sluice umbrella {{ .Chart.Version }}.
+
+Components (all start disabled; flip enabled in values when the story lands):
+  vllm={{ .Values.vllm.enabled }}
+  tei={{ .Values.tei.enabled }}
+  litellm={{ .Values.litellm.enabled }}
+  langfuse={{ .Values.langfuse.enabled }}
+  kube-prometheus-stack={{ index .Values "kube-prometheus-stack" "enabled" }}
