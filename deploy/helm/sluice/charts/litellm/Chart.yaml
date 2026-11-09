@@ -1,6 +1,6 @@
 apiVersion: v2
 name: litellm
-description: Stub chart for litellm — replace when the component story lands.
+description: LiteLLM gateway + Postgres for chat, embeddings, and rerank.
 type: application
 version: 0.1.0
-appVersion: "0.0.0"
+appVersion: "1.108.3"

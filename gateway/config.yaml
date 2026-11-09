@@ -1,0 +1,29 @@
+# SLU-55 — LiteLLM routes for Phase 1 serving.
+# Upstreams use the Argo release name `sluice` (Services in namespace sluice).
+# Master key and DATABASE_URL come from env (Key Vault → K8s Secret), not this file.
+
+model_list:
+  - model_name: qwen3-8b-awq
+    litellm_params:
+      model: openai/Qwen/Qwen3-8B-AWQ
+      api_base: http://sluice-vllm:8000
+      api_key: "none"
+
+  - model_name: bge-base-en-v1.5
+    litellm_params:
+      model: openai/BAAI/bge-base-en-v1.5
+      api_base: http://sluice-tei-embed
+      api_key: "none"
+
+  - model_name: bge-reranker-base
+    litellm_params:
+      model: huggingface/BAAI/bge-reranker-base
+      api_base: http://sluice-tei-rerank
+      api_key: "none"
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  database_url: os.environ/DATABASE_URL
+
+litellm_settings:
+  drop_params: true
