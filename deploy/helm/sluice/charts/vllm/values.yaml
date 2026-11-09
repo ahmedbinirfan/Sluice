@@ -1,1 +1,71 @@
-# Placeholder values for the vllm stub.
+# ADR-0004 / SLU-52: Qwen3-8B-AWQ on T4 16GB, dtype float16, thinking off by default.
+replicaCount: 1
+
+image:
+  repository: vllm/vllm-openai
+  tag: v0.8.5
+  pullPolicy: IfNotPresent
+
+model: Qwen/Qwen3-8B-AWQ
+
+# Serve flags — keep max-model-len in the 4k–8k band so KV fits ~7–8GB (docs/learning/serving.md).
+extraArgs:
+  - --dtype
+  - float16
+  - --max-model-len
+  - "4096"
+  - --gpu-memory-utilization
+  - "0.90"
+  - --host
+  - "0.0.0.0"
+  - --port
+  - "8000"
+  # Qwen3: do not burn tokens on thinking for every agent/gateway call.
+  - --chat-template-kwargs
+  - '{"enable_thinking": false}'
+
+service:
+  type: ClusterIP
+  port: 8000
+
+persistence:
+  size: 20Gi
+  # AKS default; override if the cluster uses a different StorageClass.
+  storageClassName: managed-csi
+  mountPath: /root/.cache/huggingface
+
+resources:
+  limits:
+    nvidia.com/gpu: "1"
+
+nodeSelector:
+  pool: gpu
+
+tolerations:
+  - key: nvidia.com/gpu
+    operator: Equal
+    value: present
+    effect: NoSchedule
+  - key: kubernetes.azure.com/scalesetpriority
+    operator: Equal
+    value: spot
+    effect: NoSchedule
+
+# First HF download + AWQ load on a cold spot node is slow.
+readinessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 120
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 60
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 300
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 5
