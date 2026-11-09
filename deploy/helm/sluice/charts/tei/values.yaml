@@ -1,1 +1,49 @@
-# Placeholder values for the tei stub.
+# SLU-54: two TEI servers on the system (CPU) pool — not the spot GPU.
+image:
+  repository: ghcr.io/huggingface/text-embeddings-inference
+  tag: cpu-1.9
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+persistence:
+  storageClassName: managed-csi
+  mountPath: /data
+
+# First HF download on a cold PVC is slow.
+readinessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 60
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 180
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 5
+
+# Keep requests modest — share the D4s_v6 system node with Argo CD.
+resources:
+  requests:
+    cpu: 250m
+    memory: 1Gi
+  limits:
+    cpu: "1"
+    memory: 4Gi
+
+engines:
+  - name: embed
+    model: BAAI/bge-base-en-v1.5
+    persistenceSize: 5Gi
+  - name: rerank
+    model: BAAI/bge-reranker-base
+    persistenceSize: 5Gi
