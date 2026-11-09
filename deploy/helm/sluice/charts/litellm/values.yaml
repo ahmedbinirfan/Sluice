@@ -1,1 +1,60 @@
-# Placeholder values for the litellm stub.
+# SLU-55: LiteLLM on the system (CPU) pool. Secrets stay out of Git.
+image:
+  repository: ghcr.io/berriai/litellm
+  tag: v1.108.3
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 4000
+
+# K8s Secret created from Key Vault (see scripts/sync-litellm-secrets.sh).
+# Keys: master-key, database-url, postgres-password
+existingSecret: sluice-litellm
+
+postgres:
+  image:
+    repository: postgres
+    tag: "16-alpine"
+    pullPolicy: IfNotPresent
+  service:
+    port: 5432
+  auth:
+    username: litellm
+    database: litellm
+  persistence:
+    size: 5Gi
+    storageClassName: managed-csi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi
+
+readinessProbe:
+  httpGet:
+    path: /health/readiness
+    port: http
+  initialDelaySeconds: 20
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 18
+
+livenessProbe:
+  httpGet:
+    path: /health/liveliness
+    port: http
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 5

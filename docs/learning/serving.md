@@ -73,3 +73,15 @@ Measured wall time through port-forward on AKS (cold-ish after Ready, single sho
 - `/rerank` (1 query, 2 texts) ≈ **160 ms**
 
 GPU TEI would be faster; we stayed on CPU to keep the T4 free for vLLM and to fit the AUD 30 habit. Re-measure if models or node size change.
+
+## LiteLLM gateway (SLU-55)
+
+`gateway/config.yaml` registers three routes behind `sluice-litellm:4000`:
+
+| Route model | Upstream |
+| --- | --- |
+| `qwen3-8b-awq` | `sluice-vllm:8000` (OpenAI chat) |
+| `bge-base-en-v1.5` | `sluice-tei-embed` (OpenAI embeddings) |
+| `bge-reranker-base` | `sluice-tei-rerank` (HF/TEI rerank) |
+
+Master key and Postgres URL live in Key Vault (`litellm-master-key`, `litellm-postgres-password`), mirrored to Secret `sluice-litellm` via `scripts/sync-litellm-secrets.sh` — not in Git. Prove with the OpenAI Python SDK pointed at the gateway `base_url` (+ `/rerank` for the cross-encoder).
