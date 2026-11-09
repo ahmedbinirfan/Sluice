@@ -1,4 +1,5 @@
-# ADR-0004 / SLU-52: Qwen3-8B-AWQ on T4 16GB, dtype float16, thinking off by default.
+# ADR-0004 / SLU-52: Qwen3-8B-AWQ on T4 16GB, dtype float16.
+# vllm/vllm-openai entrypoint is `python -m vllm.entrypoints.openai.api_server` (flags, not positional model).
 replicaCount: 1
 
 image:
@@ -9,6 +10,7 @@ image:
 model: Qwen/Qwen3-8B-AWQ
 
 # Serve flags — keep max-model-len in the 4k–8k band so KV fits ~7–8GB (docs/learning/serving.md).
+# Thinking-off via --chat-template-kwargs needs a newer vLLM; smoke with defaults for 0.8.5.
 extraArgs:
   - --dtype
   - float16
@@ -20,9 +22,6 @@ extraArgs:
   - "0.0.0.0"
   - --port
   - "8000"
-  # Qwen3: do not burn tokens on thinking for every agent/gateway call.
-  - --chat-template-kwargs
-  - '{"enable_thinking": false}'
 
 service:
   type: ClusterIP
@@ -30,7 +29,6 @@ service:
 
 persistence:
   size: 20Gi
-  # AKS default; override if the cluster uses a different StorageClass.
   storageClassName: managed-csi
   mountPath: /root/.cache/huggingface
 
@@ -51,7 +49,6 @@ tolerations:
     value: spot
     effect: NoSchedule
 
-# First HF download + AWQ load on a cold spot node is slow.
 readinessProbe:
   httpGet:
     path: /health
