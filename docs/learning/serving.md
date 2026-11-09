@@ -57,3 +57,19 @@ So `--max-model-len` trades context length for concurrency. For Phase 1 smoke on
 ## What to compare at vLLM startup (SLU-53)
 
 After deploy, read the engine log for model load size and KV cache blocks / max concurrency. If measured KV budget is far below ~7 GB, lower `--gpu-memory-utilization` assumptions or `--max-model-len`, and update this file with the measured numbers.
+
+## TEI on CPU (SLU-54)
+
+Two TEI pods on the **system** pool (`ghcr.io/huggingface/text-embeddings-inference:cpu-1.9`):
+
+| Service | Model | Smoke |
+| --- | --- | --- |
+| `sluice-tei-embed` | `BAAI/bge-base-en-v1.5` | `POST /embed` → 768-d vector |
+| `sluice-tei-rerank` | `BAAI/bge-reranker-base` | `POST /rerank` → scores |
+
+Measured wall time through port-forward on AKS (cold-ish after Ready, single short request, **CPU**):
+
+- `/embed` ≈ **200 ms**
+- `/rerank` (1 query, 2 texts) ≈ **160 ms**
+
+GPU TEI would be faster; we stayed on CPU to keep the T4 free for vLLM and to fit the AUD 30 habit. Re-measure if models or node size change.
