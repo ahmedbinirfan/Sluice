@@ -1,9 +1,9 @@
-# Enable components once each chart is real (SLU-53+: vLLM).
+# Enable components once each chart is real (SLU-53 vLLM, SLU-54 TEI).
 vllm:
   enabled: true
 
 tei:
-  enabled: false
+  enabled: true
 
 litellm:
   enabled: false

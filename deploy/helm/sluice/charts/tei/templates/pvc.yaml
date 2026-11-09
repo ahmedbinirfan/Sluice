@@ -1,0 +1,21 @@
+{{- range .Values.engines }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $.Release.Name }}-tei-{{ .name }}-cache
+  labels:
+    app.kubernetes.io/name: tei
+    app.kubernetes.io/component: {{ .name }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    app.kubernetes.io/part-of: sluice
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .persistenceSize }}
+  {{- if $.Values.persistence.storageClassName }}
+  storageClassName: {{ $.Values.persistence.storageClassName | quote }}
+  {{- end }}
+{{- end }}
