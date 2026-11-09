@@ -1,6 +1,6 @@
-# Enable components in later stories once each chart is real.
+# Enable components once each chart is real (SLU-53+: vLLM).
 vllm:
-  enabled: false
+  enabled: true
 
 tei:
   enabled: false
