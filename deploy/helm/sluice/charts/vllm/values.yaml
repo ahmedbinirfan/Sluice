@@ -22,6 +22,9 @@ extraArgs:
   - "0.0.0.0"
   - --port
   - "8000"
+  # SLU-56: keep concurrent running low so waiting builds under burst.
+  - --max-num-seqs
+  - "8"
 
 service:
   type: ClusterIP
