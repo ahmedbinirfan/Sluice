@@ -51,8 +51,9 @@ smoke:
 	./scripts/with-gateway.sh uv run pytest tests/test_smoke.py -q
 
 # SLU-56: deepen vllm:num_requests_waiting; watch `kubectl -n sluice get sts,pods,hpa,scaledobject -w`.
+# For a stronger KEDA signal, port-forward sluice-vllm and run burst_queue.py --direct-vllm.
 loadtest:
-	./scripts/with-gateway.sh uv run python loadtest/burst_queue.py --concurrency 16
+	./scripts/with-gateway.sh uv run python loadtest/burst_queue.py --concurrency 32 --waves 2 --max-tokens 256
 
 eval gate redteam:
 	@echo TODO
