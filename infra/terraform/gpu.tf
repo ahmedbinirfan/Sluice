@@ -8,6 +8,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "gpu" {
   priority        = "Spot"
   eviction_policy = "Delete"
   spot_max_price  = -1
+  gpu_driver      = "Install"
 
   auto_scaling_enabled = true
   min_count            = 0

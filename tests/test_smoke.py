@@ -22,7 +22,9 @@ RERANK_LATENCY_S = float(os.environ.get("SLUICE_SMOKE_RERANK_S", "30"))
 def client() -> OpenAI:
     if not MASTER_KEY:
         pytest.skip("SLUICE_MASTER_KEY is not set")
-    return OpenAI(base_url=f"{GATEWAY_URL}/v1", api_key=MASTER_KEY, timeout=CHAT_LATENCY_S)
+    return OpenAI(
+        base_url=f"{GATEWAY_URL}/v1", api_key=MASTER_KEY, timeout=CHAT_LATENCY_S
+    )
 
 
 def test_chat_through_gateway(client: OpenAI) -> None:
@@ -36,7 +38,9 @@ def test_chat_through_gateway(client: OpenAI) -> None:
     elapsed = time.perf_counter() - started
     assert resp.choices, "chat response missing choices"
     assert resp.choices[0].message.content, "chat response empty"
-    assert elapsed < CHAT_LATENCY_S, f"chat took {elapsed:.1f}s (ceiling {CHAT_LATENCY_S}s)"
+    assert elapsed < CHAT_LATENCY_S, (
+        f"chat took {elapsed:.1f}s (ceiling {CHAT_LATENCY_S}s)"
+    )
 
 
 def test_embeddings_through_gateway(client: OpenAI) -> None:
@@ -45,7 +49,9 @@ def test_embeddings_through_gateway(client: OpenAI) -> None:
     elapsed = time.perf_counter() - started
     assert resp.data, "embeddings response empty"
     assert len(resp.data[0].embedding) == 768
-    assert elapsed < EMBED_LATENCY_S, f"embed took {elapsed:.1f}s (ceiling {EMBED_LATENCY_S}s)"
+    assert elapsed < EMBED_LATENCY_S, (
+        f"embed took {elapsed:.1f}s (ceiling {EMBED_LATENCY_S}s)"
+    )
 
 
 def test_rerank_through_gateway() -> None:
@@ -71,4 +77,6 @@ def test_rerank_through_gateway() -> None:
     body = resp.json()
     assert body.get("results"), "rerank results missing"
     assert "relevance_score" in body["results"][0]
-    assert elapsed < RERANK_LATENCY_S, f"rerank took {elapsed:.1f}s (ceiling {RERANK_LATENCY_S}s)"
+    assert elapsed < RERANK_LATENCY_S, (
+        f"rerank took {elapsed:.1f}s (ceiling {RERANK_LATENCY_S}s)"
+    )

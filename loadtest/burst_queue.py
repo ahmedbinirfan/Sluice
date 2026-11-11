@@ -21,7 +21,9 @@ async def one_chat(client: httpx.AsyncClient, i: int) -> tuple[int, float, int]:
         headers={"Authorization": f"Bearer {MASTER_KEY}"},
         json={
             "model": "qwen3-8b-awq",
-            "messages": [{"role": "user", "content": f"Count slowly to 20 starting at {i}."}],
+            "messages": [
+                {"role": "user", "content": f"Count slowly to 20 starting at {i}."}
+            ],
             "max_tokens": 128,
             "temperature": 0,
         },
