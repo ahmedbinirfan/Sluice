@@ -90,7 +90,9 @@ Master key and Postgres URL live in Key Vault (`litellm-master-key`, `litellm-po
 
 Scale on **waiting** requests, not GPU util: a busy GPU can still accept more work until the scheduler queue grows. KEDA scrapes Prometheus (`sluice-prometheus`) for `sum(vllm:num_requests_waiting)` and scales the vLLM **StatefulSet** (one PVC per replica so RWO cache works on a second spot node). GPU pool `max_count` is 2 so the second replica can schedule.
 
-Observe under load: `make loadtest` while watching `kubectl -n sluice get sts,pods,hpa,scaledobject -w` and `kubectl get nodes -l pool=gpu -w`.
+Observe under load: `make loadtest` (or `uv run python loadtest/burst_queue.py --direct-vllm …` to deepen the wait queue) while watching `kubectl -n sluice get sts,pods,hpa,scaledobject -w` and `kubectl get nodes -l pool=gpu -w`.
+
+Observed on AKS (2026-11-11): with `--max-num-seqs=8`, a 40-way direct vLLM burst pushed `sum(vllm:num_requests_waiting)` to **24** while **8** ran; KEDA desired replicas went **1→2**, a second spot GPU node appeared (`aks-gpu-…000001`), then cooldown returned the StatefulSet toward 1.
 
 ## Gateway smoke (SLU-57)
 
