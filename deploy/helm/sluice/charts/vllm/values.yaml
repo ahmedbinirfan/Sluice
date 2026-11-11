@@ -75,4 +75,4 @@ keda:
   pollingInterval: 15
   cooldownPeriod: 180
   threshold: "2"
-  prometheusAddress: http://sluice-prometheus:9090
+  prometheusAddress: http://sluice-prometheus.sluice.svc.cluster.local:9090
