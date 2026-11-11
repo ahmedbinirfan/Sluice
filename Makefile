@@ -45,7 +45,16 @@ tf-destroy:
 	$(TF) init -input=false
 	$(TF) destroy -input=false -auto-approve
 
-smoke eval gate loadtest redteam:
+# SLU-57: chat + embed + rerank through the LiteLLM gateway.
+smoke:
+	./scripts/sync-litellm-secrets.sh
+	./scripts/with-gateway.sh uv run pytest tests/test_smoke.py -q
+
+# SLU-56: deepen vllm:num_requests_waiting; watch `kubectl -n sluice get sts,pods,hpa,scaledobject -w`.
+loadtest:
+	./scripts/with-gateway.sh uv run python loadtest/burst_queue.py --concurrency 16
+
+eval gate redteam:
 	@echo TODO
 
 lint:

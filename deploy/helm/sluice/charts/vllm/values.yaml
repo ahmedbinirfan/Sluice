@@ -66,3 +66,13 @@ livenessProbe:
   periodSeconds: 30
   timeoutSeconds: 5
   failureThreshold: 5
+
+# SLU-56: KEDA scales the StatefulSet on queue depth (Prometheus scrape of /metrics).
+keda:
+  enabled: true
+  minReplicaCount: 1
+  maxReplicaCount: 2
+  pollingInterval: 15
+  cooldownPeriod: 180
+  threshold: "2"
+  prometheusAddress: http://sluice-prometheus:9090

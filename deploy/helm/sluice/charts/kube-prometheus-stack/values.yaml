@@ -1,1 +1,21 @@
-# Placeholder values for the kube-prometheus-stack stub.
+# SLU-56: thin Prometheus — scrape vLLM only. Not the full kube-prometheus stack.
+image:
+  repository: prom/prometheus
+  tag: v3.2.1
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 9090
+
+# Release name is `sluice`; scrape the vLLM Service in the same namespace.
+scrapeTargets:
+  - sluice-vllm:8000
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi

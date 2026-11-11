@@ -85,3 +85,13 @@ GPU TEI would be faster; we stayed on CPU to keep the T4 free for vLLM and to fi
 | `bge-reranker-base` | `sluice-tei-rerank` (HF/TEI rerank) |
 
 Master key and Postgres URL live in Key Vault (`litellm-master-key`, `litellm-postgres-password`), mirrored to Secret `sluice-litellm` via `scripts/sync-litellm-secrets.sh` — not in Git. Prove with the OpenAI Python SDK pointed at the gateway `base_url` (+ `/rerank` for the cross-encoder).
+
+## KEDA on queue depth (SLU-56)
+
+Scale on **waiting** requests, not GPU util: a busy GPU can still accept more work until the scheduler queue grows. KEDA scrapes Prometheus (`sluice-prometheus`) for `sum(vllm:num_requests_waiting)` and scales the vLLM **StatefulSet** (one PVC per replica so RWO cache works on a second spot node). GPU pool `max_count` is 2 so the second replica can schedule.
+
+Observe under load: `make loadtest` while watching `kubectl -n sluice get sts,pods,hpa,scaledobject -w` and `kubectl get nodes -l pool=gpu -w`.
+
+## Gateway smoke (SLU-57)
+
+`make smoke` port-forwards the gateway, loads the master key from Key Vault, and runs `tests/test_smoke.py` (chat + embeddings + rerank with latency ceilings).

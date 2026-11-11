@@ -1,0 +1,26 @@
+{{- if .Values.keda.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ .Release.Name }}-vllm
+  labels:
+    app.kubernetes.io/name: vllm
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/part-of: sluice
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: {{ .Release.Name }}-vllm
+  minReplicaCount: {{ .Values.keda.minReplicaCount }}
+  maxReplicaCount: {{ .Values.keda.maxReplicaCount }}
+  pollingInterval: {{ .Values.keda.pollingInterval }}
+  cooldownPeriod: {{ .Values.keda.cooldownPeriod }}
+  triggers:
+    - type: prometheus
+      metadata:
+        serverAddress: {{ .Values.keda.prometheusAddress | quote }}
+        metricName: vllm_num_requests_waiting
+        query: sum(vllm:num_requests_waiting)
+        threshold: {{ .Values.keda.threshold | quote }}
+{{- end }}
