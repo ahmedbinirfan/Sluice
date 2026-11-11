@@ -11,7 +11,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "gpu" {
 
   auto_scaling_enabled = true
   min_count            = 0
-  max_count            = 1
+  # SLU-56: allow a second spot T4 so KEDA can schedule a second vLLM replica.
+  max_count = 2
 
   node_labels = {
     pool = "gpu"

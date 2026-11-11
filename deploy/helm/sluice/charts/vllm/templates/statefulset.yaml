@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ .Release.Name }}-vllm
   labels:
@@ -7,13 +7,13 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/part-of: sluice
 spec:
+  serviceName: {{ .Release.Name }}-vllm
   replicas: {{ .Values.replicaCount }}
+  podManagementPolicy: Parallel
   selector:
     matchLabels:
       app.kubernetes.io/name: vllm
       app.kubernetes.io/instance: {{ .Release.Name }}
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
@@ -55,7 +55,19 @@ spec:
             {{- toYaml .Values.livenessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-      volumes:
-        - name: model-cache
-          persistentVolumeClaim:
-            claimName: {{ .Release.Name }}-vllm-cache
+  volumeClaimTemplates:
+    - metadata:
+        name: model-cache
+        labels:
+          app.kubernetes.io/name: vllm
+          app.kubernetes.io/instance: {{ .Release.Name }}
+          app.kubernetes.io/part-of: sluice
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size }}
+        {{- if .Values.persistence.storageClassName }}
+        storageClassName: {{ .Values.persistence.storageClassName | quote }}
+        {{- end }}

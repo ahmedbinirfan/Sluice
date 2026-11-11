@@ -1,4 +1,4 @@
-# Enable components once each chart is real (SLU-53 vLLM, SLU-54 TEI, SLU-55 LiteLLM).
+# Enable components once each chart is real (SLU-53–55 serving; SLU-56 Prometheus for KEDA).
 vllm:
   enabled: true
 
@@ -12,4 +12,4 @@ langfuse:
   enabled: false
 
 kube-prometheus-stack:
-  enabled: false
+  enabled: true

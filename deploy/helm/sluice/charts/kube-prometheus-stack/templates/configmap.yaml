@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-prometheus
+  labels:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/part-of: sluice
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+    scrape_configs:
+      - job_name: vllm
+        metrics_path: /metrics
+        static_configs:
+          - targets:
+            {{- range .Values.scrapeTargets }}
+            - {{ . | quote }}
+            {{- end }}
